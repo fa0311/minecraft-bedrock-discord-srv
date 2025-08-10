@@ -3,7 +3,7 @@ import { config } from "dotenv";
 import { createDiscordClient } from "./discord.js";
 import { createLineNotifyClient } from "./lineNotify.js";
 import { createMinecraftClient, getTranslation } from "./minecraft.js";
-import { numberOr } from "./utils.js";
+import { listOr, numberOr } from "./utils.js";
 
 config();
 
@@ -12,6 +12,7 @@ const PORT = numberOr(process.env.PORT);
 const REALMS_INVITE_KEY = process.env.REALMS_INVITE_KEY;
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
+const DISCORD_VOICE_CHANNEL_ID = listOr(process.env.DISCORD_VOICE_CHANNEL_ID);
 const LINE_NOTIFY_URL = process.env.LINE_NOTIFY_URL;
 const LINE_NOTIFY_TOKEN = process.env.LINE_NOTIFY_TOKEN;
 const LINE_WHITE_MESSAGE = process.env.LINE_WHITE_MESSAGE;
@@ -74,6 +75,25 @@ if (!REALMS_INVITE_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
     if (message.channel.id !== DISCORD_CHANNEL_ID) return;
     console.log(`[Discord] ${message.author.username}: ${message.content}`);
     await minecraftClient.sendMessage(message.author.username, message.content);
+  });
+
+  discordClient.client.on("voiceStateUpdate", async (before, after) => {
+    const member = before.member || after.member;
+    if (!member) return;
+    if (member.user.bot) return;
+    const channel = after.channel ?? before.channel;
+    if (!channel) return;
+    if (after.channelId === before.channelId) return;
+    if (before.channel && DISCORD_VOICE_CHANNEL_ID.includes(before.channel.id)) {
+      minecraftClient.sendMessageRaw(
+        `${member.user.username} left voice channel ${before.channel.name}`
+      );
+    }
+    if (after.channel && DISCORD_VOICE_CHANNEL_ID.includes(after.channel.id)) {
+      minecraftClient.sendMessageRaw(
+        `${member.user.username} joined voice channel ${after.channel.name}`
+      );
+    }
   });
 
   minecraftClient.event.onText(async ({ message, source_name, type, parameters }) => {
