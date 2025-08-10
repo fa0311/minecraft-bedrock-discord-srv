@@ -1,0 +1,110 @@
+import { type Client, type ClientOptions, createClient } from "bedrock-protocol";
+
+import { promises as fs } from "node:fs";
+
+type MinecraftClientType = Client & { username: string };
+type OnTextType = {
+  message: string;
+  source_name: string;
+  type: string;
+  parameters: string[];
+};
+
+export const getTranslation = async (lang: string) => {
+  const dir = "./MCBVanillaResourcePack/texts";
+  const files = (await fs.readdir(dir)).filter((file) => file.endsWith(".lang"));
+
+  if (files.length === 0) {
+    throw new Error("No translation files found, please add submodules");
+  }
+
+  const langPath = files.find((file) => file.startsWith(lang));
+
+  if (!langPath) {
+    throw new Error(`Translation file not found: ${lang}, choose from: ${files.join(", ")}`);
+  }
+
+  const data = await fs.readFile(`${dir}/${langPath}`, "utf-8");
+  const raw = Object.fromEntries(
+    data.split("\r\n").map((line) => {
+      const [key, value] = line.split("=");
+      return [key, value];
+    })
+  );
+  const getTranslation = (key: string, parameters: string[]) => {
+    const getValue = (key: string) => Object.entries(raw).find(([k]) => key.includes(k))?.[1];
+    const data = getValue(key);
+    if (!data) {
+      throw new Error(`Translation not found for key: ${key}`);
+    }
+    let count = 0;
+    const text = data
+      .replace(/%s/g, (match) => {
+        return parameters[count++] || match;
+      })
+      .replace(/%([0-9]+)\$s/g, (match) => {
+        const index = Number.parseInt(match.slice(1));
+        return parameters[index - 1];
+      })
+      .replace(/%([a-z0-9.]+)/g, (match) => {
+        const key = match.slice(1);
+        return getValue(key) || match;
+      });
+    return text;
+  };
+  return { raw, getTranslation };
+};
+
+export const createMinecraftClient = async (options: Partial<ClientOptions>) => {
+  const client = createClient(options as any) as MinecraftClientType;
+
+  const sendMessageRaw = async (message: string) => {
+    return client.write("text", {
+      type: "chat",
+      needs_translation: false,
+      source_name: client.username,
+      xuid: "",
+      platform_chat_id: "",
+      filtered_message: "",
+      message: message,
+    });
+  };
+
+  await new Promise<void>((resolve) => {
+    client.once("spawn", () => {
+      resolve();
+    });
+  });
+
+  const sendMessage = async (username: string, message: string) => {
+    return sendMessageRaw(`§b§l[Discord]§r §e${username}§r: §f${message}`);
+  };
+
+  const sendMessageSystem = async (message: string) => {
+    return sendMessageRaw(`§b§l[Discord]§r §f${message}`);
+  };
+
+  const onText = async (fn: ({ message, source_name, type, parameters }: OnTextType) => void) => {
+    client.on("text", fn);
+  };
+
+  const onError = async (fn: (error: any) => void) => {
+    client.on("error", fn);
+  };
+
+  const onDisconnect = async (fn: (packet: any) => void) => {
+    client.on("disconnect", fn);
+  };
+
+  return {
+    client,
+    sendMessageRaw,
+    sendMessage,
+    sendMessageSystem,
+    event: {
+      onText,
+      onError,
+      onDisconnect,
+    },
+  };
+};

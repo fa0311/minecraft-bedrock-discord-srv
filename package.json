@@ -1,0 +1,43 @@
+{
+  "name": "minecraft-bedrock-discord-srv",
+  "version": "1.0.0",
+  "description": "A client that enables cross-chat between Discord and Minecraft Bedrock Edition realms.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "debug": "tsx --inspect-brk src/index.ts",
+    "watch": "tsx watch src/index.ts",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["minecraft", "bedrock", "discord", "typescript"],
+  "author": "fa0311",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fa0311/minecraft-bedrock-discord-srv.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fa0311/minecraft-bedrock-discord-srv/issues"
+  },
+  "homepage": "https://github.com/fa0311/minecraft-bedrock-discord-srv",
+  "dependencies": {
+    "bedrock-protocol": "^3.0.0",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@types/node": "^20.14.10",
+    "tsx": "^4.7.0",
+    "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
