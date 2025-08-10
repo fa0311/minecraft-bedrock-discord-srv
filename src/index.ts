@@ -86,12 +86,12 @@ if (!REALMS_INVITE_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
     if (!channel) return;
     if (after.channelId === before.channelId) return;
     if (before.channel && DISCORD_VOICE_CHANNEL_ID.includes(before.channel.id)) {
-      minecraftClient.sendMessageRaw(
+      minecraftClient.sendMessageSystem(
         `${member.user.username} left voice channel ${before.channel.name}`
       );
     }
     if (after.channel && DISCORD_VOICE_CHANNEL_ID.includes(after.channel.id)) {
-      minecraftClient.sendMessageRaw(
+      minecraftClient.sendMessageSystem(
         `${member.user.username} joined voice channel ${after.channel.name}`
       );
     }
