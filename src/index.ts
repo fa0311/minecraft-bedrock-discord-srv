@@ -1,8 +1,11 @@
 import { GatewayIntentBits } from "discord.js";
-import { createDiscordClient } from "./discord";
-import { createLineNotifyClient } from "./lineNotify";
-import { createMinecraftClient, getTranslation } from "./minecraft";
-import { numberOr } from "./utils";
+import { config } from "dotenv";
+import { createDiscordClient } from "./discord.js";
+import { createLineNotifyClient } from "./lineNotify.js";
+import { createMinecraftClient, getTranslation } from "./minecraft.js";
+import { numberOr } from "./utils.js";
+
+config();
 
 const HOST = process.env.HOST;
 const PORT = numberOr(process.env.PORT);

@@ -11,12 +11,16 @@ type OnTextType = {
 };
 
 export const getTranslation = async (lang: string) => {
-  const dir = "./MCBVanillaResourcePack/texts";
-  const files = (await fs.readdir(dir)).filter((file) => file.endsWith(".lang"));
+  const getReadDir = async (dir: string) => {
+    try {
+      return await fs.readdir(dir);
+    } catch (err) {
+      throw new Error("No translation files found, please add submodules");
+    }
+  };
 
-  if (files.length === 0) {
-    throw new Error("No translation files found, please add submodules");
-  }
+  const dir = "./MCBVanillaResourcePack/texts";
+  const files = (await getReadDir(dir)).filter((file) => file.endsWith(".lang"));
 
   const langPath = files.find((file) => file.startsWith(lang));
 
