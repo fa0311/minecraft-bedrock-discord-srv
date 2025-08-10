@@ -36,15 +36,19 @@ export const getTranslation = async (lang: string) => {
     .map(([key, value]) => [`%${key}`, () => value] as const)
     .sort((a, b) => b[0].length - a[0].length);
 
-  const getTranslation = (text: string, parameters: string[]) => {
+  const getTranslation = (text: string, parameters: (string | number)[]) => {
     let count = 0;
     const placeholder = [
       ...raw,
+      ...raw,
+      ...raw,
       ...parameters.map((param, index) => [`%${index + 1}$s`, () => param] as const),
       ["%s", () => parameters[count++]] as const,
+      ...parameters.map((param, index) => [`%${index + 1}$d`, () => param] as const),
+      ["%d", () => parameters[count++]] as const,
     ];
     const data = placeholder.reduce((acc, [key, value]) => {
-      return acc.replace(key, value());
+      return acc.replace(key, `${value()}`);
     }, text);
 
     return data;
