@@ -42,6 +42,7 @@ if (!REALMS_INVITE_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
             GatewayIntentBits.Guilds,
             GatewayIntentBits.GuildMessages,
             GatewayIntentBits.MessageContent,
+            GatewayIntentBits.GuildVoiceStates,
           ],
         },
         {
