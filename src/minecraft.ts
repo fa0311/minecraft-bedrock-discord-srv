@@ -30,7 +30,7 @@ export const getTranslation = async (lang: string) => {
 
   const data = await fs.readFile(`${dir}/${langPath}`, "utf-8");
   const raw = data
-    .split("\r\n")
+    .split(/\r\n|\r|\n/)
     .map((line) => line.split("="))
     .filter(([key, value]) => key.length > 1)
     .sort((a, b) => b[0].length - a[0].length);
