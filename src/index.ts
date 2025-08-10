@@ -106,7 +106,7 @@ if (!REALMS_INVITE_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
       const text = translation.getTranslation(message, parameters);
       await discordClient.sendMessageRaw(removeColorCodes(text));
       if (LINE_WHITE_MESSAGE && text.match(LINE_WHITE_MESSAGE)) {
-        await lineNotifyClient?.sendMessage(text);
+        await lineNotifyClient?.sendMessage(removeColorCodes(text));
       }
     }
 
