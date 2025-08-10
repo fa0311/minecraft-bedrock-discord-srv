@@ -35,9 +35,15 @@ export const getTranslation = async (lang: string) => {
       return [key, value];
     })
   );
+
+  // §e のような文字を削除
+  const removeColorCodes = (text: string) => {
+    return text.replace(/§[0-9a-fk-or]/g, "");
+  };
+
   const getTranslation = (key: string, parameters: string[]) => {
     const getValue = (key: string) => Object.entries(raw).find(([k]) => key.includes(k))?.[1];
-    const data = getValue(key);
+    const data = getValue(removeColorCodes(key));
     if (!data) {
       throw new Error(`Translation not found for key: ${key}`);
     }
@@ -52,7 +58,7 @@ export const getTranslation = async (lang: string) => {
       })
       .replace(/%([a-z0-9.]+)/g, (match) => {
         const key = match.slice(1);
-        return getValue(key) || match;
+        return getValue(removeColorCodes(key)) || match;
       });
     return text;
   };
@@ -74,10 +80,11 @@ export const createMinecraftClient = async (options: Partial<ClientOptions>) => 
     });
   };
 
-  await new Promise<void>((resolve) => {
+  await new Promise<void>((resolve, reject) => {
     client.once("spawn", () => {
       resolve();
     });
+    setTimeout(() => reject(new Error("Timed out waiting for spawn event")), 10000);
   });
 
   const sendMessage = async (username: string, message: string) => {
