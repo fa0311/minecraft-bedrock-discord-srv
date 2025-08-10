@@ -33,23 +33,28 @@ export const getTranslation = async (lang: string) => {
     .split("\r\n")
     .map((line) => line.split("="))
     .filter(([key, value]) => key.length > 1)
-    .map(([key, value]) => [`%${key}`, () => value] as const)
     .sort((a, b) => b[0].length - a[0].length);
 
   const getTranslation = (text: string, parameters: (string | number)[]) => {
     let count = 0;
-    const placeholder = [
-      ...raw,
-      ...raw,
-      ...raw,
-      ...parameters.map((param, index) => [`%${index + 1}$s`, () => param] as const),
-      ["%s", () => parameters[count++]] as const,
-      ...parameters.map((param, index) => [`%${index + 1}$d`, () => param] as const),
-      ["%d", () => parameters[count++]] as const,
-    ];
-    const data = placeholder.reduce((acc, [key, value]) => {
-      return acc.replace(key, `${value()}`);
-    }, text);
+    const placeholder = Array.from({ length: 3 }, (_, i) => [
+      ...raw.map(([key, value]) => {
+        return (acc: string) => acc.replace(`%${key}`, value);
+      }),
+      ...raw.map(([key, value]) => {
+        return (acc: string) => (acc === key ? value : acc);
+      }),
+      ...parameters.map((param, index) => {
+        return (acc: string) => acc.replace(`%${index + 1}$s`, String(param));
+      }),
+      (acc: string) => acc.replace("%s", String(parameters[count++])),
+      ...parameters.map((param, index) => {
+        return (acc: string) => acc.replace(`%${index + 1}$d`, String(param));
+      }),
+      (acc: string) => acc.replace("%d", String(parameters[count++])),
+    ]).flat();
+
+    const data = placeholder.reduce((acc, fn) => fn(acc), text);
 
     return data;
   };
