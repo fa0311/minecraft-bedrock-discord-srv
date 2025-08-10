@@ -36,7 +36,6 @@ export const getTranslation = async (lang: string) => {
     })
   );
 
-  // §e のような文字を削除
   const removeColorCodes = (text: string) => {
     return text.replace(/§[0-9a-fk-or]/g, "");
   };
