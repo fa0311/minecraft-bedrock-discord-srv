@@ -2,7 +2,7 @@ import { GatewayIntentBits } from "discord.js";
 import { config } from "dotenv";
 import { createDiscordClient } from "./discord.js";
 import { createLineNotifyClient } from "./lineNotify.js";
-import { createMinecraftClient, getTranslation } from "./minecraft.js";
+import { createMinecraftClient, getTranslation, removeColorCodes } from "./minecraft.js";
 import { listOr, numberOr } from "./utils.js";
 
 config();
@@ -104,7 +104,7 @@ if (!REALMS_INVITE_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
       await discordClient.sendMessage(source_name, message);
     } else if (type === "translation") {
       const text = translation.getTranslation(message, parameters);
-      await discordClient.sendMessageRaw(text);
+      await discordClient.sendMessageRaw(removeColorCodes(text));
       if (LINE_WHITE_MESSAGE && text.match(LINE_WHITE_MESSAGE)) {
         await lineNotifyClient?.sendMessage(text);
       }

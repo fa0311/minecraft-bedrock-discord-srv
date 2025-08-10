@@ -29,39 +29,31 @@ export const getTranslation = async (lang: string) => {
   }
 
   const data = await fs.readFile(`${dir}/${langPath}`, "utf-8");
-  const raw = Object.fromEntries(
-    data.split("\r\n").map((line) => {
-      const [key, value] = line.split("=");
-      return [key, value];
-    })
-  );
+  const raw = data
+    .split("\r\n")
+    .map((line) => line.split("="))
+    .filter(([key, value]) => key.length > 1)
+    .map(([key, value]) => [`%${key}`, () => value] as const)
+    .sort((a, b) => b[0].length - a[0].length);
 
-  const removeColorCodes = (text: string) => {
-    return text.replace(/§[0-9a-fk-or]/g, "");
-  };
-
-  const getTranslation = (key: string, parameters: string[]) => {
-    const getValue = (key: string) => Object.entries(raw).find(([k]) => key.includes(k))?.[1];
-    const data = getValue(removeColorCodes(key));
-    if (!data) {
-      throw new Error(`Translation not found for key: ${key}`);
-    }
+  const getTranslation = (text: string, parameters: string[]) => {
     let count = 0;
-    const text = data
-      .replace(/%s/g, (match) => {
-        return parameters[count++] || match;
-      })
-      .replace(/%([0-9]+)\$s/g, (match) => {
-        const index = Number.parseInt(match.slice(1));
-        return parameters[index - 1];
-      })
-      .replace(/%([a-z0-9.]+)/g, (match) => {
-        const key = match.slice(1);
-        return getValue(removeColorCodes(key)) || match;
-      });
-    return text;
+    const placeholder = [
+      ...raw,
+      ...parameters.map((param, index) => [`%${index + 1}$s`, () => param] as const),
+      ["%s", () => parameters[count++]] as const,
+    ];
+    const data = placeholder.reduce((acc, [key, value]) => {
+      return acc.replace(key, value());
+    }, text);
+
+    return data;
   };
   return { raw, getTranslation };
+};
+
+export const removeColorCodes = (text: string) => {
+  return text.replace(/§[0-9a-fk-or]/g, "");
 };
 
 export const createMinecraftClient = async (options: Partial<ClientOptions>) => {
