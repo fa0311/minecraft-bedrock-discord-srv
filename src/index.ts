@@ -139,6 +139,9 @@ if (!REALMS_INVITE_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
       minecraftClient.client.removeListener("move_entity_delta", callback);
       minecraftClient.sendMessageSystem(`Entity: ${entityIds.size}`);
       discordClient.sendMessageSystem(`Entity: ${entityIds.size}`);
+    } else if (args[0] === "!tp") {
+      await minecraftClient.sendMessageRaw(`/tp ${source_name}`);
+      await minecraftClient.command(["/tp", source_name]);
     }
   });
 

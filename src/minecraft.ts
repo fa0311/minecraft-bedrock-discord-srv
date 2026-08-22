@@ -2,7 +2,7 @@ import { type Client, type ClientOptions, createClient } from "bedrock-protocol"
 
 import { promises as fs } from "node:fs";
 
-type MinecraftClientType = Client & { username: string };
+type MinecraftClientType = Client & { username: string; profile: { uuid: string } };
 type OnTextType = {
   message: string;
   source_name: string;
@@ -69,7 +69,7 @@ export const createMinecraftClient = async (options: Partial<ClientOptions>) => 
   const client = createClient(options as any) as MinecraftClientType;
 
   const sendMessageRaw = async (message: string) => {
-    return client.write("text", {
+    return client.queue("text", {
       type: "chat",
       needs_translation: false,
       source_name: client.username,
@@ -77,6 +77,19 @@ export const createMinecraftClient = async (options: Partial<ClientOptions>) => 
       platform_chat_id: "",
       filtered_message: "",
       message: message,
+    });
+  };
+
+  const command = async (command: string[]) => {
+    return client.queue("command_request", {
+      command: command.join(" "),
+      origin: {
+        type: 0,
+        uuid: client.profile.uuid,
+        request_id: "",
+      },
+      internal: false,
+      version: 66,
     });
   };
 
@@ -112,6 +125,7 @@ export const createMinecraftClient = async (options: Partial<ClientOptions>) => 
     sendMessageRaw,
     sendMessage,
     sendMessageSystem,
+    command,
     event: {
       onText,
       onError,
